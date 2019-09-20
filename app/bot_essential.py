@@ -1,7 +1,8 @@
 from .config import Config as config
 from typing import List
 import logging
-from telegram import Bot, error
+from time import sleep
+from telegram import Bot, error, Update, Message
 import requests
 
 logger = logging.getLogger('bot_essential')
@@ -35,8 +36,8 @@ def make_request(method: str, url: str) -> dict:
 
 
 class MelancholyBot(Bot):
-    def __init__(self, *args, **kwargs):
-        super(MelancholyBot, self).__init__(args, kwargs)
+    def __init__(self, token):
+        super(MelancholyBot, self).__init__(token)
         self.check_bot()
 
     def check_bot(self) -> bool:
@@ -58,12 +59,12 @@ class MelancholyBot(Bot):
                          allowed_updates: List[str] = None):
         response = self.set_webhook(url, sert, timeout, max_connections, allowed_updates)
         if not response:
-            logger.error('Failed to connect webhook for bot')
+            logger.error('Failed to connect webhook')
         else:
             logger.info('Webhook successfully set up')
 
-    def close_webhook(self):
-        self.set_webhook(url='')
+    def delete_webhook(self):
+        super(MelancholyBot, self).delete_webhook()
         logger.info('Webhook successfully closed')
 
     def get_btc_price(self, pair: str = 'USD'):
@@ -77,4 +78,21 @@ class MelancholyBot(Bot):
 
             return f'1 BTC buy price: {buy_price}{pair_symbol}, sell price: {sell_price}{pair_symbol} '
         else:
-            return 'Bad response reached, call 911'
+            return 'Bad response reached, please write to me @'
+
+    def get_updates_loop(self, interim: int = 2):
+        offset = 0
+        while True:
+            list_of_updates = super(MelancholyBot, self).get_updates(offset=offset, limit=1)
+            for update in list_of_updates:
+                self.process_update(update)
+                offset = update.update_id + 1
+            sleep(interim)
+
+    def process_update(self, update: Update):
+        message = update.message.text or 'No message reached'
+        if message == '/btc':
+            message = self.get_btc_price()
+
+        self.send_message(update.message.chat_id, message)
+

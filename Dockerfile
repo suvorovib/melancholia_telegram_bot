@@ -1,21 +1,16 @@
-FROM python:3.6.5-alpine3.7 as base
+FROM python:3.6-alpine3.10
 
 LABEL Author="Suvorov Ilia <b31aim@yandex.ru>"
 
-WORKDIR /app
-
-#COPY --from=builder /app /usr/local
 COPY . .
 
+WORKDIR .
 
-RUN apk update && \
-    apk add --no-cache --virtual .build-deps && \
-    apk add build-base && \
-    apk add --no-cache libstdc++ postgresql-libs ca-certificates && \
-    update-ca-certificates
+ENV TOKEN=YOUR_TOKEN
+
+RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev && \
     pip install --upgrade pip && \
-    pip3 install --install-option="--prefix=/app" -r requirements.txt && \
+    pip install --no-binary cryptography -r requirements.txt
 
-EXPOSE 5000
 
-CMD [ "python3", "run.py" ]
+CMD gunicorn --workers=1 --bind 0.0.0.0:5000  wsgi:app
