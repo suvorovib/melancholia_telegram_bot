@@ -25,14 +25,18 @@ def webhook_route():
     text = message.get('text')
     chat = message.get('chat')
     chat_id = chat.get('id')
+    if text == '/btc':
+        btc_price = mbot.get_btc_price()
+        text = btc_price
     mbot.send_message(chat_id, text)
     return 'OK', 200
 
 
 def run():
     try:
-        # mbot.get_updates_loop(interim=2)
+        mbot.get_updates_loop(interim=2)
         mbot.set_up_webhook(url=config.WEBHOOK_URL, sert=config.SERT_PATH)
         app.run(host=config.HOST, port=config.PORT, debug=True)
     finally:
         mbot.delete_webhook()
+        pass

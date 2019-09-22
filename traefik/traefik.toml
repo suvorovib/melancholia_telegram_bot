@@ -20,7 +20,7 @@ exposedbydefault = false
 
 [acme]
 email = "b31aim@yandex.ru"
-storage = "/etc/traefik/acme.json"
+storage = "acme.json"
 onHostRule = true
 acmeLogging = true
 entryPoint = "https"

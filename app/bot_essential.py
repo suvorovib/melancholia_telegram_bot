@@ -36,9 +36,18 @@ def make_request(method: str, url: str) -> dict:
 
 
 class MelancholyBot(Bot):
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(MelancholyBot, cls).__new__(cls)
+        return cls.instance
+
     def __init__(self, token):
         super(MelancholyBot, self).__init__(token)
         self.check_bot()
+        self.set_up_webhook(config.WEBHOOK_URL)
+
+    def __del__(self):
+        super(MelancholyBot, self).delete_webhook()
 
     def check_bot(self) -> bool:
         try:

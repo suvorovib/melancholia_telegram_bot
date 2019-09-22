@@ -1,0 +1,56 @@
+version: '3.6'
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+
+services:
+  traefik:
+    image: traefik:1.7.8
+    command:
+      - "--api"
+      - "--logLevel=DEBUG"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "$PWD/traefik/traefik.toml:/etc/traefik/traefik.toml"
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    networks:
+      - default
+
+  portainer:
+    image: portainer/portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "$PWD/data/portainer:/data"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: melancholia_default
+      traefik.port: 9000
+      traefik.frontend.rule: Host:portainer.melanholia.host
+      traefik.frontend.entryPoints: http,https
+    networks:
+      - default
+
+  melancholia:
+    image: b31aim/melancholia:0.1.1
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - TOKEN=YOUR-TOKEN
+    labels:
+      traefik.enable: "true"
+      traefik.port: 5000
+      traefik.docker.network: melancholia_default
+      traefik.frontend.rule: Host:melanholia.host, www.melanholia.host
+      traefik.frontend.entryPoints: http,https
+    networks:
+      - default
