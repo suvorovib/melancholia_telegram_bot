@@ -105,3 +105,12 @@ class MelancholyBot(Bot):
 
         self.send_message(update.message.chat_id, message)
 
+    def get_start_message(self, username: str) -> str:
+        message = f"""
+Hello {username}. Nice to see you.
+Please choose your role!
+Note:
+If you want to rent your apartment choose "Rent apartment",
+if you want to find apartment choose "Find apartment" 
+        """
+        return message
